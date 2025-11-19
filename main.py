@@ -77,18 +77,36 @@ def normalize_value(value: Any) -> Any:
     """Convert Airtable field values to something Excel-friendly."""
     if value is None:
         return ""
-    # Attachments: list of {url, filename, ...}
+
+    # Attachments or multi-select / linked records often come as lists
     if isinstance(value, list):
-        if value and isinstance(value[0], dict) and "url" in value[0]:
-            # show filenames or URLs in Excel
+        if not value:
+            return ""
+
+        first = value[0]
+
+        # Case 1: attachments -> list of {url, filename, ...}
+        if isinstance(first, dict) and "url" in first:
             return "; ".join(
-                att.get("filename") or att.get("url") for att in value
+                (att.get("filename") or att.get("url", "")) for att in value
             )
-        # Other list types
-        return ", ".join(str(v) for v in value)
+
+        # Case 2: multi-select / linked records -> list of {id, name, ...}
+        if isinstance(first, dict) and "name" in first:
+            return "; ".join(item.get("name", "") for item in value)
+
+        # Fallback: just join as strings
+        return "; ".join(str(v) for v in value)
+
+    # Single select / single linked record: {id, name, color...}
     if isinstance(value, dict):
+        if "name" in value:
+            return value["name"]
         return str(value)
+
+    # Numbers, strings, booleans…
     return value
+
 
 
 def safe_folder_name(name: str) -> str:
