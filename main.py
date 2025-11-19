@@ -204,3 +204,7 @@ async def download_export(export_id: str):
         media_type="application/zip",
         filename="airtable_export.zip",
     )
+
+@app.get("/")
+def root():
+    return {"status": "ok"}
