@@ -8,6 +8,7 @@ import pandas as pd
 import requests
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware  # ✅ NEW
 
 # === Config ===
 EXPORT_DIR = "exports"
@@ -18,6 +19,14 @@ os.makedirs(EXPORT_DIR, exist_ok=True)
 
 app = FastAPI(title="Airtable Export Service")
 
+# ✅ Allow requests from Airtable (or anyone, to keep it simple for now)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],           # you can restrict later if you want
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def cleanup_old_exports() -> None:
     """Delete ZIPs older than MAX_AGE_HOURS and keep total size under MAX_TOTAL_SIZE_BYTES."""
