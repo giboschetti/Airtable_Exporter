@@ -119,6 +119,15 @@ def safe_folder_name(name: str) -> str:
     return name.strip()[:80] or "record"
 
 
+def safe_field_name(name: str) -> str:
+    """Sanitize field name for use in ZIP paths."""
+    forbidden = ['/', '\\', ':', '*', '?', '"', '<', '>', '|']
+    for ch in forbidden:
+        name = name.replace(ch, "_")
+    return name.strip()[:80] or "field"
+
+
+
 @app.post("/export")
 async def create_export(request: Request):
     """
@@ -182,8 +191,8 @@ async def create_export(request: Request):
                         except Exception:
                             # Skip failed downloads
                             continue
-
-                        path_in_zip = f"{primary_folder}/{filename}"
+                        field_folder = safe_field_name(field_name)       
+                        path_in_zip = f"{primary_folder}/{field_folder}/{filename}"
                         zip_file.writestr(path_in_zip, resp.content)
 
     zip_buffer.seek(0)
